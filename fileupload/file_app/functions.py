@@ -47,9 +47,10 @@ def save (file_name, bucket, object_name=None):
             face = record['Face']
             # details = record['FaceDetail']
             # print ("Face ({}%)".format(face['Confidence']))
+            #hello hello hello 
             # print ("  FaceId: {}".format(face['FaceId']))
             # print ("  ImageId: {}".format(face['ImageId']))
-            
+
     """Upload a file to an S3 bucket
 
     :param file_name: File to upload
