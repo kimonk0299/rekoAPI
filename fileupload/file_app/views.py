@@ -23,9 +23,9 @@ class FileView(APIView):
       [similarity,searchname] = check('kimonktest',location.rpartition('/')[-1], "kishore_collection")
       if (not similarity):
         print('not found')
-        return JsonResponse({'Face Match' : False})
+        return JsonResponse({'Match' : False})
       else:
-        return JsonResponse({'Confidence score':similarity, 'Name': searchname})     
+        return JsonResponse({'Match':True, 'Confidence':similarity, 'Name': searchname})     
       return (hello)
     else:
       return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -40,12 +40,12 @@ class FileSave(APIView):
     if file_serializer.is_valid():
       file_serializer.save()   
       filenme = file_serializer.data.get("file")
-      facename = file_serializer.data.get("remark")
+      facename = file_serializer.data.get("name")
       print('facename:', facename)
       media_root = settings.MEDIA_ROOT
       location = (media_root.rpartition('/')[0]+filenme)
       save (str(location),'kimonktest',facename)
-      return JsonResponse ({'Face Train': True})
+      return JsonResponse ({'FaceTrain': True})
       # upload(str(location),'kimonktest')
       # [similarity,searchname] = check('kimonktest',location.rpartition('/')[-1], "kishore_collection")
       # if (not similarity):
