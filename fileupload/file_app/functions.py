@@ -26,7 +26,7 @@ def upload (file_name, bucket, object_name=None):
         return False
     return True
 
-def save (file_name, bucket, object_name=None):
+def save (file_name, bucket, image_id,object_name=None):
     def add_collection (bucket, key, collection_id,image_id):
         def index_faces(bucket, key, collection_id, image_id=None, attributes=(), region="ap-south-1"):
             rekognition = boto3.client("rekognition", region, aws_access_key_id='AKIASZCBCLLMFVT22NER', aws_secret_access_key='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')
@@ -67,7 +67,7 @@ def save (file_name, bucket, object_name=None):
     s3_client = boto3.client('s3','ap-south-1', aws_access_key_id='AKIASZCBCLLMFVT22NER', aws_secret_access_key='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')
     try:
         response = s3_client.upload_file(file_name, bucket, object_name)
-        add_collection(bucket,object_name,"kishore_collection",object_name)
+        add_collection(bucket,object_name,"kishore_collection",image_id)
     except ClientError as e:
         logging.error(e)
         return False
