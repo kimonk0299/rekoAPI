@@ -6,7 +6,7 @@ class FileSerializer(serializers.ModelSerializer):
 
   class Meta():
     model = File
-    fields = ('file', 'name', 'timestamp')
+    fields = ('file', 'visitor_name','company_name','whom_to_meet','visitor_phone_no','visitor_email','timestamp')
 
 class CheckSerializer(serializers.ModelSerializer):
 
