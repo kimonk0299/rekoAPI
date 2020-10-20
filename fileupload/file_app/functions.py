@@ -45,11 +45,6 @@ def save (file_name, bucket, image_id,object_name=None):
 
         for record in index_faces(bucket, key, collection_id, image_id):
             face = record['Face']
-            # details = record['FaceDetail']
-            # print ("Face ({}%)".format(face['Confidence']))
-            #hello hello hello 
-            # print ("  FaceId: {}".format(face['FaceId']))
-            # print ("  ImageId: {}".format(face['ImageId']))
 
     """Upload a file to an S3 bucket
 
@@ -98,6 +93,3 @@ def check (bucket, key, collection_id):
         for record in search:
             face = record['Face']
             return([record['Similarity'], face['ExternalImageId']])
-            # print ("Matched Face ({}%)".format(record['Similarity']))
-            # print ("  FaceId : {}".format(face['FaceId']))
-            # print ("  ImageId : {}".format(face['ExternalImageId']))
