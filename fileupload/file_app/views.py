@@ -13,8 +13,9 @@ class FileView(APIView):
   parser_classes = (MultiPartParser, FormParser)
 
   def post(self, request, *args, **kwargs):
-
+    request.data['file'] = request.data['image']
     check_serializer = CheckSerializer(data=request.data)
+    print(request.data)
     if check_serializer.is_valid():
       #save file locally  
       check_serializer.save()   
@@ -35,18 +36,18 @@ class FileView(APIView):
         identified = True
       return JsonResponse({
         "identified" : identified,
-        "userdata": None,
+        "userdata": '',
         "name": searchname,
-        "person_id":None ,
-        "company_name":None ,
-        "visitor_phone_no":None ,
-        "visitor_email":None,
+        "person_id":'' ,
+        "company_name":'' ,
+        "visitor_phone_no":'' , 
+        "visitor_email":'',
         "face_attr": '',
         "recommendation": {
                 }
               })     
     else:
-      return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+      return Response('error')
 
 class FileSave(APIView):
 
@@ -54,6 +55,7 @@ class FileSave(APIView):
 
   def post(self, request, *args, **kwargs):
 
+    request.data['file'] = request.data['image']
     file_serializer = FileSerializer(data=request.data)
     if file_serializer.is_valid():
 
@@ -62,10 +64,10 @@ class FileSave(APIView):
       filenme = file_serializer.data.get("file")
       facename = file_serializer.data.get("visitor_name")
       visitor_name = file_serializer.data.get("visitor_name")
-      company_name = file_serializer.data.get("company_name")
-      whom_to_meet = file_serializer.data.get("whom_to_meet")
+      #company_name = file_serializer.data.get("company_name")
+      #whom_to_meet = file_serializer.data.get("whom_to_meet")
       visitor_phone_no = file_serializer.data.get("visitor_phone_no")
-      visitor_email = file_serializer.data.get("visitor_email")
+      #visitor_email = file_serializer.data.get("visitor_email")
       media_root = settings.MEDIA_ROOT
       location = (media_root.rpartition('/')[0]+filenme)
 
@@ -77,10 +79,10 @@ class FileSave(APIView):
       return JsonResponse ({
         'Trained' : True,
         'visitor_name': visitor_name,
-        'company_name': company_name,
-        'whom_to_meet': whom_to_meet,
+        #'company_name': company_name,
+        #'whom_to_meet': whom_to_meet,
         'visitor_phone_no': visitor_phone_no,
-        'visitor_email': visitor_email
+        #'visitor_email': visitor_email
         })
     else:
       return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
