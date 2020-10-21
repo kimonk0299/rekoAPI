@@ -1,90 +1,67 @@
-import logging
 import boto3
-from botocore.exceptions import ClientError
+from PIL import Image
+
+def compress (location):
+    foo = Image.open(location)
+    (i,j) = foo.size
+    
+    ## find optimal compress size
+    lo = 1
+    hi = 10
+    avg = (i+j)//2
+
+    while(lo < hi):
+        mid = lo + ((hi-lo)//2)
+        if (avg//mid < 400):
+            hi = mid 
+        else:
+            lo = mid+1
+
+    i= i//lo 
+    j= j//lo
+
+    foo = foo.resize((i,j),Image.ANTIALIAS)
+    foo.save(location,quality=95,optimize=True)
+
+def save (photo,collection_id,name,phone):
+
+    with open (photo, 'rb') as source_image:
+        source_bytes = source_image.read()
+
+    def index_faces(source_bytes, collection_id, image_id=None, attributes=(), region="ap-south-1"):
+        rekognition = boto3.client("rekognition", region, aws_access_key_id='AKIASZCBCLLMFVT22NER', aws_secret_access_key='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')
+        response = rekognition.index_faces(
+            Image={
+                'Bytes':source_bytes
+            },
+            CollectionId=collection_id,
+            ExternalImageId=image_id,
+            DetectionAttributes=attributes,
+        )
+        return response['FaceRecords']
+
+    image_id = name+'-'+str(phone)
+    for record in index_faces(source_bytes,collection_id, image_id):
+        face = record['Face']
 
 
-def upload (file_name, bucket, object_name=None):
-    """Upload a file to an S3 bucket
+def check (photo,collection_id):
 
-    :param file_name: File to upload
-    :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
-    :return: True if file was uploaded, else False
-    """
+    with open (photo, 'rb') as source_image:
+        source_bytes = source_image.read()
 
-    # If S3 object_name was not specified, use file_name
-    if object_name is None:
-        object_name = file_name.rpartition('/')[-1]
-
-    # Upload the file
-    s3_client = boto3.client('s3','ap-south-1', aws_access_key_id='AKIASZCBCLLMFVT22NER', aws_secret_access_key='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')
-    try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
-        #add_collection(bucket,object_name,"kishore_collection",object_name)
-    except ClientError as e:
-        logging.error(e)
-        return False
-    return True
-
-def save (file_name, bucket, image_id,object_name=None):
-    def add_collection (bucket, key, collection_id,image_id):
-        def index_faces(bucket, key, collection_id, image_id=None, attributes=(), region="ap-south-1"):
-            rekognition = boto3.client("rekognition", region, aws_access_key_id='AKIASZCBCLLMFVT22NER', aws_secret_access_key='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')
-            response = rekognition.index_faces(
-                Image={
-                    "S3Object": {
-                        "Bucket": bucket,
-                        "Name": key,
-                    }
-                },
-                CollectionId=collection_id,
-                ExternalImageId=image_id,
-                DetectionAttributes=attributes,
-            )
-            return response['FaceRecords']
-
-        for record in index_faces(bucket, key, collection_id, image_id):
-            face = record['Face']
-
-    """Upload a file to an S3 bucket
-
-    :param file_name: File to upload
-    :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
-    :return: True if file was uploaded, else False
-    """
-
-    # If S3 object_name was not specified, use file_name
-    if object_name is None:
-        object_name = file_name.rpartition('/')[-1]
-
-    # Upload the file
-    s3_client = boto3.client('s3','ap-south-1', aws_access_key_id='AKIASZCBCLLMFVT22NER', aws_secret_access_key='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')
-    try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
-        add_collection(bucket,object_name,"kishore_collection",image_id)
-    except ClientError as e:
-        logging.error(e)
-        return False
-    return True
-
-def check (bucket, key, collection_id):
-
-    def search_faces_by_image(bucket, key, collection_id, threshold=80, region="ap-south-1"):
+    def search_faces_by_image(source_bytes, collection_id, threshold=80, region="ap-south-1"):
         rekognition = boto3.client("rekognition", region, aws_access_key_id='AKIASZCBCLLMFVT22NER', aws_secret_access_key='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')
         response = rekognition.search_faces_by_image(
             Image={
-                "S3Object": {
-                    "Bucket": bucket,
-                    "Name": key,
-                }
+                'Bytes':source_bytes
             },
             CollectionId=collection_id,
             FaceMatchThreshold=threshold,
         )
         return response['FaceMatches']
     
-    search = search_faces_by_image(bucket, key, collection_id)
+    search = search_faces_by_image(source_bytes, collection_id)
 
     if (search == []):
         return [False,False]

@@ -1,8 +1,6 @@
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
-from rest_framework import status
-from .functions import upload, check, save 
+from .functions import check, save, compress 
 from .serializers import FileSerializer, CheckSerializer
 from django.conf import settings
 from django.http import JsonResponse
@@ -10,12 +8,11 @@ import os
 
 class FileView(APIView):
 
-  parser_classes = (MultiPartParser, FormParser)
-
   def post(self, request, *args, **kwargs):
     request.data['file'] = request.data['image']
     check_serializer = CheckSerializer(data=request.data)
     print(request.data)
+
     if check_serializer.is_valid():
       #save file locally  
       check_serializer.save()   
@@ -23,12 +20,19 @@ class FileView(APIView):
       media_root = settings.MEDIA_ROOT
       location = (media_root.rpartition('/')[0]+filenme)
 
-      #upload to s3 bucket and check 
-      upload(str(location),'kimonktest')
-      [similarity,searchname] = check('kimonktest',location.rpartition('/')[-1], "kishore_collection")
+      #compress picture
+      compress(location)
+
+      #check similarity 
+      [similarity,searchname] = check(str(location), "kishore_collection")
+      txt = searchname.split("-")
+      nameid= txt[0]
+      phone_id = txt[1]
+
 
       #remove image loacally 
       os.remove(location)
+
       if (not similarity):
         identified = False
         searchname = ''
@@ -36,11 +40,12 @@ class FileView(APIView):
         identified = True
       return JsonResponse({
         "identified" : identified,
-        "userdata": '',
-        "name": searchname,
-        "person_id":'' ,
+        "userdata": '(type: Visitor), (category: Enabled)',
+        "name": nameid,
+        "person_id":'ab69026f-bc03-447a-a362-2eeb4d3e6545' ,
+        "id": 104,
         "company_name":'' ,
-        "visitor_phone_no":'' , 
+        "visitor_phone_no":phone_id , 
         "visitor_email":'',
         "face_attr": '',
         "recommendation": {
@@ -50,8 +55,6 @@ class FileView(APIView):
       return Response('error')
 
 class FileSave(APIView):
-
-  parser_classes = (MultiPartParser, FormParser)
 
   def post(self, request, *args, **kwargs):
 
@@ -71,8 +74,11 @@ class FileSave(APIView):
       media_root = settings.MEDIA_ROOT
       location = (media_root.rpartition('/')[0]+filenme)
 
-      #upload media to s3 bucket and train 
-      save (str(location),'kimonktest',facename)
+      #compress picture
+      compress(location)
+
+      #upload media and train 
+      save (str(location),"kishore_collection",facename,visitor_phone_no)
 
       #removing local copy of image
       os.remove(location)
@@ -85,4 +91,4 @@ class FileSave(APIView):
         #'visitor_email': visitor_email
         })
     else:
-      return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+      return Response('error')
